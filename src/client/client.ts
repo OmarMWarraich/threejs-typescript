@@ -16,14 +16,16 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 3
+camera.position.z = 1
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-controls.screenSpacePanning = true
+controls.enableDamping = true
+
+// controls.screenSpacePanning = true
 // controls.addEventListener('change', render)
 
 /* const boxGeometry = new THREE.BoxGeometry()
@@ -32,11 +34,11 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const torusKnotGeometry = new THREE.TorusKnotGeometry() */
 const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8)
 
-interface MeshPhysicalMaterialWithIndex extends THREE.MeshPhysicalMaterial {
+interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
     [key: string]: any;
   }
 
-const material: MeshPhysicalMaterialWithIndex = new THREE.MeshPhysicalMaterial()
+const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial()
 
 /* const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -57,7 +59,12 @@ scene.add(torusKnot) */
 const texture = new THREE.TextureLoader().load('img/materialTextures2/worldColour.5400x2700.jpg')
 material.map = texture
 
-const envTexture = new THREE.CubeTextureLoader().load([
+const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_bumpmap.jpg')
+// const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
+material.bumpMap = bumpTexture
+material.bumpScale = 0.05
+
+/* const envTexture = new THREE.CubeTextureLoader().load([
     'img/materialTextures2/px_eso0932a.jpg',
     'img/materialTextures2/nx_eso0932a.jpg',
     'img/materialTextures2/py_eso0932a.jpg',
@@ -67,12 +74,12 @@ const envTexture = new THREE.CubeTextureLoader().load([
 ])
 
 envTexture.mapping = THREE.CubeReflectionMapping
-material.envMap = envTexture
+material.envMap = envTexture */
 
 // const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/grayscale-test.jpg')
-const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/earthSpecular.jpg')
+/* const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/earthSpecular.jpg')
 material.roughnessMap = specularTexture
-material.metalnessMap = specularTexture
+material.metalnessMap = specularTexture */
 
 const plane: THREE.Mesh = new THREE.Mesh(planeGeometry, material)
 scene.add(plane)
@@ -88,17 +95,19 @@ function onWindowResize() {
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
-const options = {
+/* const options = {
     side: {
         FrontSide: THREE.FrontSide,
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
-}
+} */
 
 const gui = new GUI()
 
-const materialFolder = gui.addFolder('THREE.Material')
+gui.add(material, 'bumpScale', 0, 1, 0.01)
+
+/* const materialFolder = gui.addFolder('THREE.Material')
 materialFolder.add(material, 'transparent')
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
@@ -146,7 +155,7 @@ meshPhysicalMaterialFolder.open()
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
     material.needsUpdate = true
-}
+} */
 
 function animate() {
     requestAnimationFrame(animate)
