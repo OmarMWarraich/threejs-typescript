@@ -26,11 +26,11 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const planeGeometry = new THREE.PlaneGeometry()
 const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-interface MeshBasicMaterialWithIndex extends THREE.MeshBasicMaterial {
+interface MeshNormalMaterialWithIndex extends THREE.MeshNormalMaterial {
     [key: string]: any;
   }
 
-const material: MeshBasicMaterialWithIndex = new THREE.MeshBasicMaterial()
+const material: MeshNormalMaterialWithIndex = new THREE.MeshNormalMaterial()
 
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
