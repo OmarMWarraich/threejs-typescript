@@ -22,33 +22,23 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.screenSpacePanning = true
+// controls.addEventListener('change', render)
 
-const boxGeometry = new THREE.BoxGeometry()
+/* const boxGeometry = new THREE.BoxGeometry()
 const sphereGeometry = new THREE.SphereGeometry()
 const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
-const planeGeometry = new THREE.PlaneGeometry()
-const torusKnotGeometry = new THREE.TorusKnotGeometry()
+const torusKnotGeometry = new THREE.TorusKnotGeometry() */
+const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8)
 
-const threeTone = new THREE.TextureLoader().load('img/gradientMaps/threeTone.jpg')
-threeTone.minFilter = THREE.NearestFilter
-threeTone.magFilter = THREE.NearestFilter
-
-const fourTone = new THREE.TextureLoader().load('img/gradientMaps/fourTone.jpg')
-fourTone.minFilter = THREE.NearestFilter
-fourTone.magFilter = THREE.NearestFilter
-
-const fiveTone = new THREE.TextureLoader().load('img/gradientMaps/fiveTone.jpg')
-fiveTone.minFilter = THREE.NearestFilter
-fiveTone.magFilter = THREE.NearestFilter
-
-interface MeshToonMaterialWithIndex extends THREE.MeshToonMaterial {
+interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
     [key: string]: any;
   }
 
-const material: MeshToonMaterialWithIndex = new THREE.MeshToonMaterial()
+const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial()
 
-const cube = new THREE.Mesh(boxGeometry, material)
+/* const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
 scene.add(cube)
 
@@ -60,13 +50,31 @@ const icosahedron = new THREE.Mesh(icosahedronGeometry, material)
 icosahedron.position.x = 0
 scene.add(icosahedron)
 
-const plane = new THREE.Mesh(planeGeometry, material)
-plane.position.x = -2
-scene.add(plane)
-
 const torusKnot = new THREE.Mesh(torusKnotGeometry, material)
 torusKnot.position.x = -5
-scene.add(torusKnot)
+scene.add(torusKnot) */
+
+const texture = new THREE.TextureLoader().load('img/materialTextures2/worldColour.5400x2700.jpg')
+material.map = texture
+
+const envTexture = new THREE.CubeTextureLoader().load([
+    'img/materialTextures2/px_eso0932a.jpg',
+    'img/materialTextures2/nx_eso0932a.jpg',
+    'img/materialTextures2/py_eso0932a.jpg',
+    'img/materialTextures2/ny_eso0932a.jpg',
+    'img/materialTextures2/pz_eso0932a.jpg',
+    'img/materialTextures2/nz_eso0932a.jpg',
+])
+
+envTexture.mapping = THREE.CubeReflectionMapping
+material.envMap = envTexture
+
+// const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/grayscale-test.jpg')
+const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/earthSpecular.jpg')
+material.specularMap = specularTexture
+
+const plane = new THREE.Mesh(planeGeometry, material)
+scene.add(plane)
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -85,32 +93,17 @@ const options = {
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
-    gradientMap: {
-        Default: null,
-        threeTone: 'threeTone',
-        fourTone: 'fourTone',
-        fiveTone: 'fiveTone',
-    },
+    combine: {
+        MultiplyOperation: THREE.MultiplyOperation,
+        MixOperation: THREE.MixOperation,
+        AddOperation: THREE.AddOperation,
+    }
 }
 
 const gui = new GUI()
 
-const data = {
-    lightColor: light.color.getHex(),
-    color: material.color.getHex(),
-    gradientMap: 'threeTone',
-}
-
-material.gradientMap = threeTone
-
-const lightFolder = gui.addFolder('THREE.Light')
-lightFolder.addColor(data, 'lightColor').onChange(() => {
-    light.color.setHex(Number(data.lightColor.toString().replace('#', '0x')))
-})
-// lightFolder.add(light, 'intensity', 0, 4)
-
 const materialFolder = gui.addFolder('THREE.Material')
-materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
+materialFolder.add(material, 'transparent')
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
 materialFolder.add(material, 'depthWrite')
@@ -121,31 +114,49 @@ materialFolder.add(material, 'visible')
 materialFolder
     .add(material, 'side', options.side)
     .onChange(() => updateMaterial())
-// materialFolder.open()
 
-const meshToonMaterialFolder = gui.addFolder('THREE.MeshToonMaterial')
+const data = {
+    color: material.color.getHex(),
+    emissive: material.emissive.getHex(),
+    specular: material.specular.getHex(),
+}
 
-meshToonMaterialFolder.addColor(data, 'color').onChange(() => {
+const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
+
+meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
 
-meshToonMaterialFolder
-    .add(data, 'gradientMap', options.gradientMap)
+meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
+    material.emissive.setHex(
+        Number(data.emissive.toString().replace('#', '0x'))
+    )
+})
+meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
+    material.specular.setHex(
+        Number(data.specular.toString().replace('#', '0x'))
+    )
+})
+meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
+meshPhongMaterialFolder.add(material, 'wireframe')
+meshPhongMaterialFolder
+    .add(material, 'flatShading')
     .onChange(() => updateMaterial())
+meshPhongMaterialFolder
+    .add(material, 'combine', options.combine)
+    .onChange(() => updateMaterial())
+meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
 
-meshToonMaterialFolder.open()
+meshPhongMaterialFolder.open()
 
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
-    material.gradientMap = eval(data.gradientMap as string)
+    material.combine = Number(material.combine) as THREE.Combine
     material.needsUpdate = true
 }
 
 function animate() {
     requestAnimationFrame(animate)
-
-    cube.rotation.x += 0.01
-    cube.rotation.y += 0.01
 
     render()
 
