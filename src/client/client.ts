@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 const scene = new THREE.Scene();
 
@@ -16,7 +17,7 @@ document.body.appendChild( renderer.domElement );
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.addEventListener('change', render); // use if there is no animation loop
+// controls.addEventListener('change', render); // use if there is no animation loop
 
 const geometry = new THREE.BoxGeometry();
 
@@ -32,20 +33,26 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    // render()
+    render()
 }
 
-// function animate() {
-//     requestAnimationFrame( animate );
-//     cube.rotation.x += 0.01;
-//     cube.rotation.y += 0.01;
-//     render()
-// }
+const stats = new Stats();
+document.body.appendChild(stats.dom);
+
+function animate() {
+    requestAnimationFrame( animate );
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    render()
+
+    stats.update();
+}
 
 function render() {
     renderer.render( scene, camera );
 }
 
-// animate();
+animate();
 
-render();
+// render();
