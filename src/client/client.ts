@@ -6,9 +6,9 @@ import { GUI } from 'dat.gui'
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-// const light = new THREE.PointLight(0xffffff, 2)
-// light.position.set(10, 10, 10)
-// scene.add(light)
+const light = new THREE.PointLight(0xffffff, 2)
+light.position.set(10, 10, 10)
+scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -30,18 +30,23 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const planeGeometry = new THREE.PlaneGeometry()
 const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-interface MeshMatcapMaterialWithIndex extends THREE.MeshMatcapMaterial {
+const threeTone = new THREE.TextureLoader().load('img/gradientMaps/threeTone.jpg')
+threeTone.minFilter = THREE.NearestFilter
+threeTone.magFilter = THREE.NearestFilter
+
+const fourTone = new THREE.TextureLoader().load('img/gradientMaps/fourTone.jpg')
+fourTone.minFilter = THREE.NearestFilter
+fourTone.magFilter = THREE.NearestFilter
+
+const fiveTone = new THREE.TextureLoader().load('img/gradientMaps/fiveTone.jpg')
+fiveTone.minFilter = THREE.NearestFilter
+fiveTone.magFilter = THREE.NearestFilter
+
+interface MeshToonMaterialWithIndex extends THREE.MeshToonMaterial {
     [key: string]: any;
   }
 
-const material: MeshMatcapMaterialWithIndex = new THREE.MeshMatcapMaterial()
-
-// const matcapTexture = new THREE.TextureLoader().load('img/matcap-opal.png')
-// const matcapTexture = new THREE.TextureLoader().load("img/matcap-crystal.png")
-const matcapTexture = new THREE.TextureLoader().load("img/matcap-gold.png")
-//const matcapTexture = new THREE.TextureLoader().load("img/matcap-red-light.png")
-//const matcapTexture = new THREE.TextureLoader().load("img/matcap-green-yellow-pink.png")
-material.matcap = matcapTexture
+const material: MeshToonMaterialWithIndex = new THREE.MeshToonMaterial()
 
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -80,9 +85,30 @@ const options = {
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
+    gradientMap: {
+        Default: null,
+        threeTone: 'threeTone',
+        fourTone: 'fourTone',
+        fiveTone: 'fiveTone',
+    },
 }
 
 const gui = new GUI()
+
+const data = {
+    lightColor: light.color.getHex(),
+    color: material.color.getHex(),
+    gradientMap: 'threeTone',
+}
+
+material.gradientMap = threeTone
+
+const lightFolder = gui.addFolder('THREE.Light')
+lightFolder.addColor(data, 'lightColor').onChange(() => {
+    light.color.setHex(Number(data.lightColor.toString().replace('#', '0x')))
+})
+// lightFolder.add(light, 'intensity', 0, 4)
+
 const materialFolder = gui.addFolder('THREE.Material')
 materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
@@ -95,31 +121,31 @@ materialFolder.add(material, 'visible')
 materialFolder
     .add(material, 'side', options.side)
     .onChange(() => updateMaterial())
-materialFolder.open()
+// materialFolder.open()
 
-const data = {
-    color: material.color.getHex(),
-}
+const meshToonMaterialFolder = gui.addFolder('THREE.MeshToonMaterial')
 
-const meshMatcapMaterialFolder = gui.addFolder('THREE.MeshMatcapMaterial')
-
-meshMatcapMaterialFolder.addColor(data, 'color').onChange(() => {
+meshToonMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
 
-meshMatcapMaterialFolder
-    .add(material, 'flatShading')
+meshToonMaterialFolder
+    .add(data, 'gradientMap', options.gradientMap)
     .onChange(() => updateMaterial())
 
-meshMatcapMaterialFolder.open()
+meshToonMaterialFolder.open()
 
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
+    material.gradientMap = eval(data.gradientMap as string)
     material.needsUpdate = true
 }
 
 function animate() {
     requestAnimationFrame(animate)
+
+    cube.rotation.x += 0.01
+    cube.rotation.y += 0.01
 
     render()
 
