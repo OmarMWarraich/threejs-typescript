@@ -4,7 +4,6 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
-
 scene.add(new THREE.AxesHelper(5))
 
 const light = new THREE.PointLight(0xffffff, 2)
@@ -12,7 +11,7 @@ light.position.set(10, 10, 10)
 scene.add(light)
 
 const light2 = new THREE.PointLight(0xffffff, 2)
-light2.position.set(10, 10, 10)
+light2.position.set(-10, -10, -10)
 scene.add(light2)
 
 const camera = new THREE.PerspectiveCamera(
@@ -55,7 +54,6 @@ envTexture.mapping = THREE.CubeReflectionMapping
 // envTexture.mapping = THREE.CubeRefractionMapping
 material.envMap = envTexture
 
-
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
 scene.add(cube)
@@ -97,14 +95,12 @@ const options = {
         MultiplyOperation: THREE.MultiplyOperation,
         MixOperation: THREE.MixOperation,
         AddOperation: THREE.AddOperation,
-    }
+    },
 }
 
 const gui = new GUI()
 const materialFolder = gui.addFolder('THREE.Material')
-materialFolder
-    .add(material, 'transparent')
-    .onChange(() => (material.needsUpdate = true))
+materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
 materialFolder.add(material, 'depthWrite')
@@ -124,37 +120,30 @@ const data = {
 }
 
 const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
-
 meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
-
 meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
-    material.emissive.setHex(Number(data.emissive.toString().replace('#', '0x')))
+    material.emissive.setHex(
+        Number(data.emissive.toString().replace('#', '0x'))
+    )
 })
-
 meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
-    material.specular.setHex(Number(data.specular.toString().replace('#', '0x')))
+    material.specular.setHex(
+        Number(data.specular.toString().replace('#', '0x'))
+    )
 })
-
 meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
-
 meshPhongMaterialFolder.add(material, 'wireframe')
-
 meshPhongMaterialFolder.add(material, 'wireframeLinewidth', 0, 10)
-
 meshPhongMaterialFolder
     .add(material, 'flatShading')
     .onChange(() => updateMaterial())
-
 meshPhongMaterialFolder
     .add(material, 'combine', options.combine)
     .onChange(() => updateMaterial())
-
 meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
-
 meshPhongMaterialFolder.add(material, 'refractionRatio', 0, 1)
-
 meshPhongMaterialFolder.open()
 
 function updateMaterial() {
