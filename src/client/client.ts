@@ -4,7 +4,12 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
+
 scene.add(new THREE.AxesHelper(5))
+
+const light = new THREE.PointLight(0xffffff, 2)
+light.position.set(10, 10, 10)
+scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -26,11 +31,11 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const planeGeometry = new THREE.PlaneGeometry()
 const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-interface MeshNormalMaterialWithIndex extends THREE.MeshNormalMaterial {
+interface MeshLambertMaterialWithIndex extends THREE.MeshLambertMaterial {
     [key: string]: any;
   }
 
-const material: MeshNormalMaterialWithIndex = new THREE.MeshNormalMaterial()
+const material: MeshLambertMaterialWithIndex = new THREE.MeshLambertMaterial()
 
 const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -69,6 +74,11 @@ const options = {
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
+    combine: {
+        MultiplyOperation: THREE.MultiplyOperation,
+        MixOperation: THREE.MixOperation,
+        AddOperation: THREE.AddOperation,
+    }
 }
 
 const gui = new GUI()
@@ -88,18 +98,38 @@ materialFolder
     .onChange(() => updateMaterial())
 materialFolder.open()
 
-const meshNormalMaterialFolder = gui.addFolder('THREE.MeshNormalMaterial')
+const data = {
+    color: material.color.getHex(),
+    emissive: material.emissive.getHex(),
+}
 
-meshNormalMaterialFolder.add(material, 'wireframe')
+const meshLambertMaterialFolder = gui.addFolder('THREE.MeshLambertMaterial')
 
-meshNormalMaterialFolder
-    .add(material, 'flatShading')
+meshLambertMaterialFolder.addColor(data, 'color').onChange(() => {
+    material.color.setHex(Number(data.color.toString().replace('#', '0x')))
+})
+
+meshLambertMaterialFolder.addColor(data, 'emissive').onChange(() => {
+    material.emissive.setHex(Number(data.emissive.toString().replace('#', '0x')))
+})
+
+meshLambertMaterialFolder.add(material, 'wireframe')
+
+meshLambertMaterialFolder.add(material, 'wireframeLinewidth', 0, 10)
+
+meshLambertMaterialFolder
+    .add(material, 'combine', options.combine)
     .onChange(() => updateMaterial())
 
-meshNormalMaterialFolder.open()
+meshLambertMaterialFolder.add(material, 'reflectivity', 0, 1)
+
+meshLambertMaterialFolder.add(material, 'refractionRatio', 0, 1)
+
+meshLambertMaterialFolder.open()
 
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
+    material.combine = Number(material.combine) as THREE.Combine
     material.needsUpdate = true
 }
 
