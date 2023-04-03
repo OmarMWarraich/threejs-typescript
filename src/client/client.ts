@@ -32,11 +32,11 @@ const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const torusKnotGeometry = new THREE.TorusKnotGeometry() */
 const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8)
 
-interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
+interface MeshPhysicalMaterialWithIndex extends THREE.MeshPhysicalMaterial {
     [key: string]: any;
   }
 
-const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial()
+const material: MeshPhysicalMaterialWithIndex = new THREE.MeshPhysicalMaterial()
 
 /* const cube = new THREE.Mesh(boxGeometry, material)
 cube.position.x = 5
@@ -71,9 +71,10 @@ material.envMap = envTexture
 
 // const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/grayscale-test.jpg')
 const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/earthSpecular.jpg')
-material.specularMap = specularTexture
+material.roughnessMap = specularTexture
+material.metalnessMap = specularTexture
 
-const plane = new THREE.Mesh(planeGeometry, material)
+const plane: THREE.Mesh = new THREE.Mesh(planeGeometry, material)
 scene.add(plane)
 
 window.addEventListener('resize', onWindowResize, false)
@@ -93,11 +94,6 @@ const options = {
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
-    combine: {
-        MultiplyOperation: THREE.MultiplyOperation,
-        MixOperation: THREE.MixOperation,
-        AddOperation: THREE.AddOperation,
-    }
 }
 
 const gui = new GUI()
@@ -118,40 +114,37 @@ materialFolder
 const data = {
     color: material.color.getHex(),
     emissive: material.emissive.getHex(),
-    specular: material.specular.getHex(),
 }
 
-const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
+const meshPhysicalMaterialFolder = gui.addFolder('THREE.MeshPhysicalMaterialFolder')
 
-meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
+meshPhysicalMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
 
-meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
+meshPhysicalMaterialFolder.addColor(data, 'emissive').onChange(() => {
     material.emissive.setHex(
         Number(data.emissive.toString().replace('#', '0x'))
     )
 })
-meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
-    material.specular.setHex(
-        Number(data.specular.toString().replace('#', '0x'))
-    )
-})
-meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
-meshPhongMaterialFolder.add(material, 'wireframe')
-meshPhongMaterialFolder
+
+// meshPhysicalMaterialFolder.add(material, 'shininess', 0, 1024)
+meshPhysicalMaterialFolder.add(material, 'wireframe')
+meshPhysicalMaterialFolder
     .add(material, 'flatShading')
     .onChange(() => updateMaterial())
-meshPhongMaterialFolder
-    .add(material, 'combine', options.combine)
-    .onChange(() => updateMaterial())
-meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
 
-meshPhongMaterialFolder.open()
+meshPhysicalMaterialFolder.add(material, 'reflectivity', 0, 1)
+meshPhysicalMaterialFolder.add(material, 'envMapIntensity', 0, 1)
+meshPhysicalMaterialFolder.add(material, 'roughness', 0, 1)
+meshPhysicalMaterialFolder.add(material, 'metalness', 0, 1)
+meshPhysicalMaterialFolder.add(material, 'clearcoat', 0, 1)
+meshPhysicalMaterialFolder.add(material, 'clearcoatRoughness', 0, 1)
+
+meshPhysicalMaterialFolder.open()
 
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
-    material.combine = Number(material.combine) as THREE.Combine
     material.needsUpdate = true
 }
 
