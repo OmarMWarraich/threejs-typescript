@@ -7,7 +7,7 @@ const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
 const light = new THREE.PointLight(0xffffff, 2)
-light.position.set(10, 10, 10)
+light.position.set(0, 10, 0)
 scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
@@ -16,17 +16,13 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 3
+camera.position.set(0, 1, 1)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-controls.screenSpacePanning = true
-
-// controls.screenSpacePanning = true
-// controls.addEventListener('change', render)
 
 /* const boxGeometry = new THREE.BoxGeometry()
 const sphereGeometry = new THREE.SphereGeometry()
@@ -61,8 +57,14 @@ material.map = texture
 
 const displacementMap = new THREE.TextureLoader().load('img/materialTextures4/gebco_bathy.5400x2700_8bit.jpg')
 material.displacementMap = displacementMap
+material.displacementScale = 0.3
+
+const normalTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
+material.normalMap = normalTexture
+material.normalScale.set(5, 5)
 
 const plane: THREE.Mesh = new THREE.Mesh(planeGeometry, material)
+plane.rotation.x = -Math.PI / 2
 scene.add(plane)
 
 window.addEventListener('resize', onWindowResize, false)
@@ -102,10 +104,9 @@ materialFolder
 const data = {
     color: material.color.getHex(),
     emissive: material.emissive.getHex(),
-    specular: material.specular.getHex(),
 }
 
-const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterialFolder')
+const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
 
 meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
@@ -117,28 +118,15 @@ meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
     )
 })
 
-meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
-    material.specular.setHex(
-        Number(data.specular.toString().replace('#', '0x'))
-    )
-})
-
-meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
 meshPhongMaterialFolder.add(material, 'wireframe')
 
 meshPhongMaterialFolder
     .add(material, 'flatShading')
     .onChange(() => updateMaterial())
 
-meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
-meshPhongMaterialFolder.add(material, 'refractionRatio', 0, 1)
-meshPhongMaterialFolder.add(material, 'displacementScale', 0, 1, 0.01)
+meshPhongMaterialFolder.add(material, 'displacementScale', -1, 1, 0.01)
 meshPhongMaterialFolder.add(material, 'displacementBias', -1, 1, 0.01)
-
-function updateMaterial() {
-    material.side = Number(material.side) as THREE.Side
-    material.needsUpdate = true
-}
+meshPhongMaterialFolder.open()
 
 const planeData = {
     width: 3.6,
@@ -147,31 +135,52 @@ const planeData = {
     heightSegments: 180,
 }
 
+
+
 const planePropertiesFolder = gui.addFolder('PlaneGeometry')
 planePropertiesFolder
-       .add(planeData, 'widthSegments', 1, 360)
-       .onChange(regeneratePlaneGeometry)
+    .add(planeData, 'widthSegments', 1, 360)
+    .onChange(regeneratePlaneGeometry)
 planePropertiesFolder
-        .add(planeData, 'heightSegments', 1, 180)
-        .onChange(regeneratePlaneGeometry)
+    .add(planeData, 'heightSegments', 1, 180)
+    .onChange(regeneratePlaneGeometry)
 planePropertiesFolder.open()
 
+const lightFolder = gui.addFolder('Light')
+
+const lightPosition = {
+    x: light.position.x,
+}
+
+const materialNormalScale = {
+    x: material.normalScale.x,
+    y: material.normalScale.y,
+}
+
+lightFolder.add(lightPosition, 'x', -10, 10).name('position.x')
+lightFolder.add(materialNormalScale, 'x', 0, 10, 0.01).name('normalScale.x')
+lightFolder.add(materialNormalScale, 'y', 0, 10, 0.01).name('normalScale.y')
+lightFolder.open()
+
 function regeneratePlaneGeometry() {
-    const newGeometry = new THREE.PlaneGeometry(
+    let newGeometry = new THREE.PlaneGeometry(
         planeData.width,
         planeData.height,
         planeData.widthSegments,
         planeData.heightSegments
     )
-    plane.geometry.dispose()
-    plane.geometry = newGeometry
+        plane.geometry.dispose()
+        plane.geometry = newGeometry
+    }
+
+function updateMaterial() {
+    material.side = Number(material.side) as THREE.Side
+    material.needsUpdate = true
 }
 
 function animate() {
     requestAnimationFrame(animate)
-
     render()
-
     stats.update()
 }
 
