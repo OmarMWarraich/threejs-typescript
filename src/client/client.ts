@@ -1,15 +1,19 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-const light = new THREE.PointLight()
-light.position.set(2.5, 7.5, 15)
-scene.add(light)
+const light1 = new THREE.PointLight(0xffffff, 2)
+light1.position.set(2.5, 2.5, 2.5)
+scene.add(light1)
+
+const light2 = new THREE.PointLight(0xffffff, 2)
+light2.position.set(-2.5, 2.5, 2.5)
+scene.add(light2)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -32,57 +36,52 @@ let modelReady = false
 const animationActions: THREE.AnimationAction[] = []
 let activeAction: THREE.AnimationAction
 let lastAction: THREE.AnimationAction
-const fbxLoader: FBXLoader = new FBXLoader()
+const gltfLoader = new GLTFLoader()
 
-fbxLoader.load(
-    'models/vanguard_t_choonyung.fbx',
-    (object) => {
-        object.scale.set(0.01, 0.01, 0.01)
-        mixer = new THREE.AnimationMixer(object)
+gltfLoader.load(
+    'models/model7/vanguard.glb',
+    (gltf) => {
+        // gltf.scene.scale.set(.01, .01, .01)
 
-        const animationAction = mixer.clipAction(
-            (object as THREE.Object3D).animations[0]
-        )
+        mixer = new THREE.AnimationMixer(gltf.scene)
+
+        const animationAction = mixer.clipAction((gltf as any).animations[0])
         animationActions.push(animationAction)
         animationsFolder.add(animations, 'default')
         activeAction = animationActions[0]
 
-        scene.add(object)
+        scene.add(gltf.scene)
 
         //add an animation from another file
-        fbxLoader.load(
-            'models/vanguard@samba.fbx',
-            (object) => {
+        gltfLoader.load(
+            'models/model7/vanguard@samba.glb',
+            (gltf) => {
                 console.log('loaded samba')
-
                 const animationAction = mixer.clipAction(
-                    (object as THREE.Object3D).animations[0]
+                    (gltf as any).animations[0]
                 )
                 animationActions.push(animationAction)
                 animationsFolder.add(animations, 'samba')
 
                 //add an animation from another file
-                fbxLoader.load(
-                    'models/vanguard@bellydance.fbx',
-                    (object) => {
+                gltfLoader.load(
+                    'models/model7/vanguard@bellydance.glb',
+                    (gltf) => {
                         console.log('loaded bellydance')
                         const animationAction = mixer.clipAction(
-                            (object as THREE.Object3D).animations[0]
+                            (gltf as any).animations[0]
                         )
                         animationActions.push(animationAction)
                         animationsFolder.add(animations, 'bellydance')
 
                         //add an animation from another file
-                        fbxLoader.load(
-                            'models/vanguard@goofyrunning.fbx',
-                            (object) => {
+                        gltfLoader.load(
+                            'models/model7/vanguard@goofyrunning.glb',
+                            (gltf) => {
                                 console.log('loaded goofyrunning')
-                                ;(
-                                    object as THREE.Object3D
-                                ).animations[0].tracks.shift() //delete the specific track that moves the object forward while running
-                                //console.dir((object as THREE.Object3D).animations[0])
+                                ;(gltf as any).animations[0].tracks.shift() //delete the specific track that moves the object forward while running
                                 const animationAction = mixer.clipAction(
-                                    (object as THREE.Object3D).animations[0]
+                                    (gltf as any).animations[0]
                                 )
                                 animationActions.push(animationAction)
                                 animationsFolder.add(animations, 'goofyrunning')
