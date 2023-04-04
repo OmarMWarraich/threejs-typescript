@@ -1,14 +1,11 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
-
-// const light = new THREE.SpotLight();
-// light.position.set(5, 5, 5)
-// scene.add(light);
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -19,19 +16,24 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.z = 2
 
 const renderer = new THREE.WebGLRenderer()
-// renderer.physicallyCorrectLights = true //deprecated
+//renderer.physicallyCorrectLights = true //deprecated
 renderer.useLegacyLights = false //use this instead of setting physicallyCorrectLights=true property
 renderer.shadowMap.enabled = true
-// renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
+// Note that since Three release 148, you will find the Draco libraries in the `.\node_modules\three\examples\jsm\libs\draco\` folder.
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderConfig({ type: 'js' });
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+
 const loader = new GLTFLoader()
+loader.setDRACOLoader(dracoLoader)
 loader.load(
-    'models/model3/monkey.glb',
+    'models/model4/monkey_compressed.glb',
     function (gltf) {
         gltf.scene.traverse(function (child) {
             if ((child as THREE.Mesh).isMesh) {
