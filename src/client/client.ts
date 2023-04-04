@@ -6,20 +6,17 @@ import { GUI } from 'dat.gui'
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-
-/* interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
-    [key: string]: any;
-  }
-
-const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial() */
-
-interface AmbientLightWithIndex extends THREE.AmbientLight {
+interface DirectionalLightWithIndex extends THREE.DirectionalLight {
     [key: string]: any
 }
 
+const light: DirectionalLightWithIndex = new THREE.DirectionalLight()
 
-const light: AmbientLightWithIndex = new THREE.AmbientLight()
+
 scene.add(light)
+
+const helper = new THREE.DirectionalLightHelper(light)
+scene.add(helper)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -46,7 +43,7 @@ const torusGeometry = [
     new THREE.TorusGeometry(),
     new THREE.TorusGeometry(),
     new THREE.TorusGeometry(),
-    new THREE.TorusGeometry()
+    new THREE.TorusGeometry(),
 ]
 
 const material = [
@@ -54,7 +51,7 @@ const material = [
     new THREE.MeshLambertMaterial(),
     new THREE.MeshPhongMaterial(),
     new THREE.MeshPhysicalMaterial({}),
-    new THREE.MeshToonMaterial()
+    new THREE.MeshToonMaterial(),
 ]
 
 const torus = [
@@ -62,7 +59,7 @@ const torus = [
     new THREE.Mesh(torusGeometry[1], material[1]),
     new THREE.Mesh(torusGeometry[2], material[2]),
     new THREE.Mesh(torusGeometry[3], material[3]),
-    new THREE.Mesh(torusGeometry[4], material[4])
+    new THREE.Mesh(torusGeometry[4], material[4]),
 ]
 
 const texture = new THREE.TextureLoader().load('img/grid.png')
@@ -97,7 +94,7 @@ document.body.appendChild(stats.dom)
 
 const data = {
     color: light.color.getHex(),
-    mapsEnabled: true
+    mapsEnabled: true,
 }
 
 const gui = new GUI()
@@ -107,8 +104,17 @@ lightFolder.addColor(data, 'color').onChange(() => {
 })
 lightFolder.add(light, 'intensity', 0, 1, 0.01)
 
-const ambientLightFolder = gui.addFolder('THREE.AmbientLight')
-ambientLightFolder.open()
+const lightPosition = {
+    x: light.position.x,
+    y: light.position.y,
+    z: light.position.z,
+}
+
+const directionalLightFolder = gui.addFolder('THREE.DirectionalLight')
+directionalLightFolder.add(lightPosition, "x", -100, 100, 0.01)
+directionalLightFolder.add(lightPosition, "y", -100, 100, 0.01)
+directionalLightFolder.add(lightPosition, "z", -100, 100, 0.01)
+directionalLightFolder.open()
 
 const meshesFolder = gui.addFolder('Meshes')
 meshesFolder.add(data, 'mapsEnabled').onChange(() => {
@@ -124,6 +130,8 @@ meshesFolder.add(data, 'mapsEnabled').onChange(() => {
 
 function animate() {
     requestAnimationFrame(animate)
+
+    //helper.update()
 
     torus.forEach((t) => {
         t.rotation.y += 0.01
