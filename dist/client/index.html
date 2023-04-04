@@ -3,16 +3,66 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Three.js TypeScript Tutorials by Sean Bradley : https://sbcode.net/threejs</title>
+        <title>
+            Three.js TypeScript Tutorials by Sean Bradley :
+            https://sbcode.net/threejs
+        </title>
         <style>
             body {
                 overflow: hidden;
                 margin: 0px;
             }
+
+            #animationsPanel {
+                position: absolute;
+                top: 40px;
+                right: 10px;
+                width: 300px;
+                height: auto;
+                border: 1px solid white;
+                color: white;
+                font-family: monospace;
+                font-size: 17px;
+            }
+
+            #animationsPanel ul {
+                padding: 4px;
+                list-style-type: none;
+            }
+
+            #btnPlayAll {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 300px;
+                display: none;
+            }
+
+            #dropzone {
+                position: absolute;
+                width: 140px;
+                height: 90px;
+                left: 10px;
+                top: 50px;
+                border: 10px dotted gray;
+                background-color: lightgray;
+                padding: 20px;
+                font-family: monospace;
+                font-size: 17px;
+            }
+
+            #dropzone p {
+                pointer-events: none;
+            }
         </style>
     </head>
 
     <body>
+        <div id="dropzone">
+            <p>Drag (uncompressed) animated gLTF/gLB here</p>
+        </div>
+        <button id="btnPlayAll">Play All</button>
+        <div id="animationsPanel"></div>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>
