@@ -16,14 +16,14 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 1
+camera.position.z = 3
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
-controls.enableDamping = true
+controls.screenSpacePanning = true
 
 // controls.screenSpacePanning = true
 // controls.addEventListener('change', render)
@@ -32,7 +32,7 @@ controls.enableDamping = true
 const sphereGeometry = new THREE.SphereGeometry()
 const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
 const torusKnotGeometry = new THREE.TorusKnotGeometry() */
-const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8)
+const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8, 360, 180)
 
 interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
     [key: string]: any;
@@ -59,27 +59,8 @@ scene.add(torusKnot) */
 const texture = new THREE.TextureLoader().load('img/materialTextures2/worldColour.5400x2700.jpg')
 material.map = texture
 
-// const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_bumpmap.jpg')
-const normalTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
-material.normalMap = normalTexture
-material.normalScale.set(2, 2)
-
-/* const envTexture = new THREE.CubeTextureLoader().load([
-    'img/materialTextures2/px_eso0932a.jpg',
-    'img/materialTextures2/nx_eso0932a.jpg',
-    'img/materialTextures2/py_eso0932a.jpg',
-    'img/materialTextures2/ny_eso0932a.jpg',
-    'img/materialTextures2/pz_eso0932a.jpg',
-    'img/materialTextures2/nz_eso0932a.jpg',
-])
-
-envTexture.mapping = THREE.CubeReflectionMapping
-material.envMap = envTexture */
-
-// const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/grayscale-test.jpg')
-/* const specularTexture = new THREE.TextureLoader().load('img/materialTextures2/earthSpecular.jpg')
-material.roughnessMap = specularTexture
-material.metalnessMap = specularTexture */
+const displacementMap = new THREE.TextureLoader().load('img/materialTextures4/gebco_bathy.5400x2700_8bit.jpg')
+material.displacementMap = displacementMap
 
 const plane: THREE.Mesh = new THREE.Mesh(planeGeometry, material)
 scene.add(plane)
@@ -95,24 +76,18 @@ function onWindowResize() {
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
-/* const options = {
+const options = {
     side: {
         FrontSide: THREE.FrontSide,
         BackSide: THREE.BackSide,
         DoubleSide: THREE.DoubleSide,
     },
-} */
+}
 
 const gui = new GUI()
 
-gui.add(material.normalScale, 'x', 0, 10, 0.01)
-gui.add(material.normalScale, 'y', 0, 10, 0.01)
-gui.add(light.position, 'x', -20, 20).name('Light Pos X')
-
-// gui.add(material, 'bumpScale', 0, 1, 0.01)
-
-/* const materialFolder = gui.addFolder('THREE.Material')
-materialFolder.add(material, 'transparent')
+const materialFolder = gui.addFolder('THREE.Material')
+materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
 materialFolder.add(material, 'depthWrite')
@@ -127,39 +102,70 @@ materialFolder
 const data = {
     color: material.color.getHex(),
     emissive: material.emissive.getHex(),
+    specular: material.specular.getHex(),
 }
 
-const meshPhysicalMaterialFolder = gui.addFolder('THREE.MeshPhysicalMaterialFolder')
+const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterialFolder')
 
-meshPhysicalMaterialFolder.addColor(data, 'color').onChange(() => {
+meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
 
-meshPhysicalMaterialFolder.addColor(data, 'emissive').onChange(() => {
+meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
     material.emissive.setHex(
         Number(data.emissive.toString().replace('#', '0x'))
     )
 })
 
-// meshPhysicalMaterialFolder.add(material, 'shininess', 0, 1024)
-meshPhysicalMaterialFolder.add(material, 'wireframe')
-meshPhysicalMaterialFolder
+meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
+    material.specular.setHex(
+        Number(data.specular.toString().replace('#', '0x'))
+    )
+})
+
+meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
+meshPhongMaterialFolder.add(material, 'wireframe')
+
+meshPhongMaterialFolder
     .add(material, 'flatShading')
     .onChange(() => updateMaterial())
 
-meshPhysicalMaterialFolder.add(material, 'reflectivity', 0, 1)
-meshPhysicalMaterialFolder.add(material, 'envMapIntensity', 0, 1)
-meshPhysicalMaterialFolder.add(material, 'roughness', 0, 1)
-meshPhysicalMaterialFolder.add(material, 'metalness', 0, 1)
-meshPhysicalMaterialFolder.add(material, 'clearcoat', 0, 1)
-meshPhysicalMaterialFolder.add(material, 'clearcoatRoughness', 0, 1)
-
-meshPhysicalMaterialFolder.open()
+meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
+meshPhongMaterialFolder.add(material, 'refractionRatio', 0, 1)
+meshPhongMaterialFolder.add(material, 'displacementScale', 0, 1, 0.01)
+meshPhongMaterialFolder.add(material, 'displacementBias', -1, 1, 0.01)
 
 function updateMaterial() {
     material.side = Number(material.side) as THREE.Side
     material.needsUpdate = true
-} */
+}
+
+const planeData = {
+    width: 3.6,
+    height: 1.8,
+    widthSegments: 360,
+    heightSegments: 180,
+}
+
+const planePropertiesFolder = gui.addFolder('PlaneGeometry')
+planePropertiesFolder
+       .add(planeData, 'widthSegments', 1, 360)
+       .onChange(regeneratePlaneGeometry)
+planePropertiesFolder
+        .add(planeData, 'heightSegments', 1, 180)
+        .onChange(regeneratePlaneGeometry)
+planePropertiesFolder.open()
+
+function regeneratePlaneGeometry() {
+    const newGeometry = new THREE.PlaneGeometry(
+        planeData.width,
+        planeData.height,
+        planeData.widthSegments,
+        planeData.heightSegments
+    )
+    plane.geometry.dispose()
+    plane.geometry = newGeometry
+}
 
 function animate() {
     requestAnimationFrame(animate)
