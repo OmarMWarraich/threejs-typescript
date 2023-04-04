@@ -17,7 +17,7 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 1
+camera.position.set(0, -0.35, 0.2)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -25,13 +25,13 @@ document.body.appendChild(renderer.domElement)
 
 new OrbitControls(camera, renderer.domElement)
 
-const planeGeometry1 = new THREE.PlaneGeometry()
-const planeGeometry2 = new THREE.PlaneGeometry()
+const planeGeometry1 = new THREE.PlaneGeometry(2, 25)
+const planeGeometry2 = new THREE.PlaneGeometry(2, 25)
 
 // const texture1 = new THREE.TextureLoader().load("img/grid.png")
 // const texture2 = new THREE.TextureLoader().load("img/grid.png")
 
-const mipmap = (size: number, color: string) => {
+const mipmap = (size: number, color: string): HTMLCanvasElement => {
     const imageCanvas = document.createElement('canvas') as HTMLCanvasElement
     const context = imageCanvas.getContext('2d') as CanvasRenderingContext2D
     imageCanvas.width = size
@@ -57,7 +57,7 @@ texture1.mipmaps[4] = mipmap(8, '#008800')
 texture1.mipmaps[5] = mipmap(4, '#000088')
 texture1.mipmaps[6] = mipmap(2, '#008888')
 texture1.mipmaps[7] = mipmap(1, '#880088')
-texture1.repeat.set(5, 5)
+texture1.repeat.set(5, 50)
 texture1.wrapS = THREE.RepeatWrapping
 texture1.wrapT = THREE.RepeatWrapping
 
@@ -104,8 +104,14 @@ textureFolder
 textureFolder
     .add(texture2, 'magFilter', options.magFilters)
     .onChange(() => updateMagFilter())
+textureFolder
+    .add(texture2, 'anisotropy', 1, renderer.capabilities.getMaxAnisotropy())
+    .onChange(() => updateAnistropy())
 textureFolder.open()
 
+function updateAnistropy() {
+    material2.map = texture2.clone()
+}
 function updateMinFilter() {
     texture2.minFilter = Number(texture2.minFilter) as THREE.TextureFilter
     texture2.needsUpdate = true
@@ -143,8 +149,6 @@ function render() {
     renderer.setScissorTest(false)
 }
 animate()
-
-
 
 
 
