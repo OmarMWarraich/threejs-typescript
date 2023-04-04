@@ -7,7 +7,7 @@ const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
 const light = new THREE.PointLight(0xffffff, 2)
-light.position.set(0, 10, 0)
+light.position.set(0, 5, 10)
 scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
@@ -16,19 +16,18 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.set(0, 1, 1)
+camera.position.z = 3
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
+controls.screenSpacePanning = true //so that panning up and down doesn't zoom in/out
+//controls.addEventListener('change', render)
 
-/* const boxGeometry = new THREE.BoxGeometry()
-const sphereGeometry = new THREE.SphereGeometry()
-const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
-const torusKnotGeometry = new THREE.TorusKnotGeometry() */
 const planeGeometry = new THREE.PlaneGeometry(3.6, 1.8, 360, 180)
+
 
 interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
     [key: string]: any;
@@ -36,35 +35,23 @@ interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
 
 const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial()
 
-/* const cube = new THREE.Mesh(boxGeometry, material)
-cube.position.x = 5
-scene.add(cube)
-
-const sphere = new THREE.Mesh(sphereGeometry, material)
-sphere.position.x = 3
-scene.add(sphere)
-
-const icosahedron = new THREE.Mesh(icosahedronGeometry, material)
-icosahedron.position.x = 0
-scene.add(icosahedron)
-
-const torusKnot = new THREE.Mesh(torusKnotGeometry, material)
-torusKnot.position.x = -5
-scene.add(torusKnot) */
-
+//const texture = new THREE.TextureLoader().load("img/grid.png")
 const texture = new THREE.TextureLoader().load('img/materialTextures2/worldColour.5400x2700.jpg')
 material.map = texture
+// const envTexture = new THREE.CubeTextureLoader().load(["img/px_50.png", "img/nx_50.png", "img/py_50.png", "img/ny_50.png", "img/pz_50.png", "img/nz_50.png"])
+// const envTexture = new THREE.CubeTextureLoader().load(["img/px_eso0932a.jpg", "img/nx_eso0932a.jpg", "img/py_eso0932a.jpg", "img/ny_eso0932a.jpg", "img/pz_eso0932a.jpg", "img/nz_eso0932a.jpg"])
+// envTexture.mapping = THREE.CubeReflectionMapping
+// material.envMap = envTexture
 
-const displacementMap = new THREE.TextureLoader().load('img/materialTextures4/gebco_bathy.5400x2700_8bit.jpg')
+//const specularTexture = new THREE.TextureLoader().load("img/earthSpecular.jpg")
+// material.specularMap = specularTexture
+
+const displacementMap = new THREE.TextureLoader().load(
+    'img/materialTextures4/gebco_bathy.5400x2700_8bit.jpg'
+)
 material.displacementMap = displacementMap
-material.displacementScale = 0.3
-
-const normalTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
-material.normalMap = normalTexture
-material.normalScale.set(5, 5)
 
 const plane: THREE.Mesh = new THREE.Mesh(planeGeometry, material)
-plane.rotation.x = -Math.PI / 2
 scene.add(plane)
 
 window.addEventListener('resize', onWindowResize, false)
@@ -85,11 +72,10 @@ const options = {
         DoubleSide: THREE.DoubleSide,
     },
 }
-
 const gui = new GUI()
 
 const materialFolder = gui.addFolder('THREE.Material')
-materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
+materialFolder.add(material, 'transparent')
 materialFolder.add(material, 'opacity', 0, 1, 0.01)
 materialFolder.add(material, 'depthTest')
 materialFolder.add(material, 'depthWrite')
@@ -100,33 +86,44 @@ materialFolder.add(material, 'visible')
 materialFolder
     .add(material, 'side', options.side)
     .onChange(() => updateMaterial())
+//materialFolder.open()
 
 const data = {
     color: material.color.getHex(),
     emissive: material.emissive.getHex(),
+    specular: material.specular.getHex(),
 }
 
-const meshPhongMaterialFolder = gui.addFolder('THREE.MeshPhongMaterial')
+const meshPhongMaterialFolder = gui.addFolder('THREE.meshPhongMaterialFolder')
 
 meshPhongMaterialFolder.addColor(data, 'color').onChange(() => {
     material.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
-
 meshPhongMaterialFolder.addColor(data, 'emissive').onChange(() => {
     material.emissive.setHex(
         Number(data.emissive.toString().replace('#', '0x'))
     )
 })
-
+meshPhongMaterialFolder.addColor(data, 'specular').onChange(() => {
+    material.specular.setHex(
+        Number(data.specular.toString().replace('#', '0x'))
+    )
+})
+meshPhongMaterialFolder.add(material, 'shininess', 0, 1024)
 meshPhongMaterialFolder.add(material, 'wireframe')
-
 meshPhongMaterialFolder
     .add(material, 'flatShading')
     .onChange(() => updateMaterial())
-
-meshPhongMaterialFolder.add(material, 'displacementScale', -1, 1, 0.01)
+meshPhongMaterialFolder.add(material, 'reflectivity', 0, 1)
+meshPhongMaterialFolder.add(material, 'refractionRatio', 0, 1)
+meshPhongMaterialFolder.add(material, 'displacementScale', 0, 1, 0.01)
 meshPhongMaterialFolder.add(material, 'displacementBias', -1, 1, 0.01)
 meshPhongMaterialFolder.open()
+
+function updateMaterial() {
+    material.side = Number(material.side) as THREE.Side
+    material.needsUpdate = true
+}
 
 const planeData = {
     width: 3.6,
@@ -135,9 +132,9 @@ const planeData = {
     heightSegments: 180,
 }
 
-
-
 const planePropertiesFolder = gui.addFolder('PlaneGeometry')
+//planePropertiesFolder.add(planeData, 'width', 1, 30).onChange(regeneratePlaneGeometry)
+//planePropertiesFolder.add(planeData, 'height', 1, 30).onChange(regeneratePlaneGeometry)
 planePropertiesFolder
     .add(planeData, 'widthSegments', 1, 360)
     .onChange(regeneratePlaneGeometry)
@@ -146,41 +143,41 @@ planePropertiesFolder
     .onChange(regeneratePlaneGeometry)
 planePropertiesFolder.open()
 
-const lightFolder = gui.addFolder('Light')
-
-const lightPosition = {
-    x: light.position.x,
-}
-
-const materialNormalScale = {
-    x: material.normalScale.x,
-    y: material.normalScale.y,
-}
-
-lightFolder.add(lightPosition, 'x', -10, 10).name('position.x')
-lightFolder.add(materialNormalScale, 'x', 0, 10, 0.01).name('normalScale.x')
-lightFolder.add(materialNormalScale, 'y', 0, 10, 0.01).name('normalScale.y')
-lightFolder.open()
-
 function regeneratePlaneGeometry() {
-    let newGeometry = new THREE.PlaneGeometry(
+    const newGeometry = new THREE.PlaneGeometry(
         planeData.width,
         planeData.height,
         planeData.widthSegments,
         planeData.heightSegments
     )
-        plane.geometry.dispose()
-        plane.geometry = newGeometry
-    }
-
-function updateMaterial() {
-    material.side = Number(material.side) as THREE.Side
-    material.needsUpdate = true
+    plane.geometry.dispose()
+    plane.geometry = newGeometry
 }
+
+const textureFolder = gui.addFolder("Texture")
+
+/* const textureRepeat = {
+    x: texture.repeat.x,
+    y: texture.repeat.y
+}
+
+const textureCenter = {
+    x: texture.center.x,
+    y: texture.center.y
+}
+
+textureFolder.add(textureRepeat, 'x', 0.1, 1, 0.1)
+textureFolder.add(textureRepeat, 'y', 0.1, 1, 0.1)
+textureFolder.add(textureCenter, 'x', 0, 1, 0.001)
+textureFolder.add(textureCenter, 'y', 0, 1, 0.001)
+
+textureFolder.open() */
 
 function animate() {
     requestAnimationFrame(animate)
+
     render()
+
     stats.update()
 }
 
