@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
@@ -17,48 +17,27 @@ const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-const controls = new OrbitControls(camera, renderer.domElement)
-
-// camera.lookAt(0.5, 0.5, 0.5)
-// controls.target.set(.5, .5, .5)
-// controls.update()
-
+const controls = new TrackballControls(camera, renderer.domElement)
 // controls.addEventListener('change', () => console.log("Controls Change"))
 // controls.addEventListener('start', () => console.log("Controls Start Event"))
 // controls.addEventListener('end', () => console.log("Controls End Event"))
-// controls.autoRotate = true
-// controls.autoRotateSpeed = 10
-// controls.enableDamping = true
-// controls.dampingFactor = .01
-// controls.enableKeys = true //older versions
-// controls.listenToKeyEvents(document.body)
-// controls.keys = {
-//     LEFT: "ArrowLeft", //left arrow
-//     UP: "ArrowUp", // up arrow
-//     RIGHT: "ArrowRight", // right arrow
-//     BOTTOM: "ArrowDown" // down arrow
-// }
-// controls.mouseButtons = {
-//     LEFT: THREE.MOUSE.ROTATE,
-//     MIDDLE: THREE.MOUSE.DOLLY,
-//     RIGHT: THREE.MOUSE.PAN
-// }
-// controls.touches = {
-//     ONE: THREE.TOUCH.ROTATE,
-//     TWO: THREE.TOUCH.DOLLY_PAN
-// }
-// controls.screenSpacePanning = true
-// controls.minAzimuthAngle = 0
-// controls.maxAzimuthAngle = Math.PI / 2
-// controls.minPolarAngle = 0
-// controls.maxPolarAngle = Math.PI
+// controls.enabled = false
+// controls.rotateSpeed = 1.0
+// controls.zoomSpeed = 1.2
+// controls.panSpeed = 0.8
+// controls.keys = ['KeyA', 'KeyS', 'KeyD']
+// controls.noPan = true //default false
+// controls.noRotate = true //default false
+// controls.noZoom = true //default false
+// controls.staticMoving = true //default false
+// controls.dynamicDampingFactor = 0.1
 // controls.maxDistance = 4
 // controls.minDistance = 2
 
 const geometry = new THREE.BoxGeometry()
 const material = new THREE.MeshBasicMaterial({
     color: 0x00ff00,
-    wireframe: true
+    wireframe: true,
 })
 
 const cube = new THREE.Mesh(geometry, material)
@@ -78,7 +57,8 @@ document.body.appendChild(stats.dom)
 function animate() {
     requestAnimationFrame(animate)
 
-    // controls.update()
+    // trackball controls needs to be updated in the animation loop before it will work
+    controls.update()
 
     render()
 
