@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
@@ -16,7 +16,7 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 40
+camera.position.z = 3
 
 const renderer = new THREE.WebGLRenderer()
 renderer.outputEncoding = THREE.sRGBEncoding
@@ -39,22 +39,20 @@ envTexture.mapping = THREE.CubeReflectionMapping
 const material = new THREE.MeshPhysicalMaterial({
     color: 0xb2ffc8,
     envMap: envTexture,
-    metalness: 0,
-    roughness: 0,
+    metalness: 0.25,
+    roughness: 0.1,
+    opacity: 1.0,
     transparent: true,
-    transmission: 1.0,
-    side: THREE.DoubleSide,
+    transmission: 0.99,
     clearcoat: 1.0,
     clearcoatRoughness: 0.25
 })
 
-const loader = new PLYLoader()
+const loader = new STLLoader()
 loader.load(
-    'models/sean4.ply',
+    'models/example.stl',
     function (geometry) {
-        geometry.computeVertexNormals()
         const mesh = new THREE.Mesh(geometry, material)
-        mesh.rotateX(-Math.PI / 2)
         scene.add(mesh)
     },
     (xhr) => {
