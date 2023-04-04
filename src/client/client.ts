@@ -1,14 +1,17 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-const light = new THREE.SpotLight()
-light.position.set(20, 20, 20)
+const light = new THREE.PointLight()
+light.position.set(0.8, 1.4, 1.0)
 scene.add(light)
+
+const ambientLight = new THREE.AmbientLight()
+scene.add(ambientLight)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -16,44 +19,32 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 3
+camera.position.set(0.8, 1.4, 1.0)
 
 const renderer = new THREE.WebGLRenderer()
-renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
+controls.target.set(0, 1, 0)
 
-const envTexture = new THREE.CubeTextureLoader().load([
-    'img/px_50.png',
-    'img/nx_50.png',
-    'img/py_50.png',
-    'img/ny_50.png',
-    'img/pz_50.png',
-    'img/nz_50.png'
-])
-envTexture.mapping = THREE.CubeReflectionMapping
+//const material = new THREE.MeshNormalMaterial()
 
-const material = new THREE.MeshPhysicalMaterial({
-    color: 0xb2ffc8,
-    envMap: envTexture,
-    metalness: 0.25,
-    roughness: 0.1,
-    opacity: 1.0,
-    transparent: true,
-    transmission: 0.99,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.25
-})
-
-const loader = new STLLoader()
-loader.load(
-    'models/example.stl',
-    function (geometry) {
-        const mesh = new THREE.Mesh(geometry, material)
-        scene.add(mesh)
+const fbxLoader = new FBXLoader()
+fbxLoader.load(
+    'models/Kachujin G Rosales.fbx',
+    (object) => {
+        // object.traverse(function (child) {
+        //     if ((child as THREE.Mesh).isMesh) {
+        //         // (child as THREE.Mesh).material = material
+        //         if ((child as THREE.Mesh).material) {
+        //             ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).transparent = false
+        //         }
+        //     }
+        // })
+        // object.scale.set(.01, .01, .01)
+        scene.add(object)
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
