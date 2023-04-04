@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { DragControls } from 'three/examples/jsm/controls/DragControls'
-// import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+// import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
@@ -27,39 +27,39 @@ scene.add(cube)
 
 const orbitControls = new OrbitControls(camera, renderer.domElement)
 
-const dragControls = new DragControls([cube], camera, renderer.domElement)
-dragControls.addEventListener('dragstart', function (event) {
-    orbitControls.enabled = false
-    event.object.material.opacity = 0.33
-})
-dragControls.addEventListener('dragend', function (event) {
-    orbitControls.enabled = true
-    event.object.material.opacity = 1
-})
-
-// const transformControls = new TransformControls(camera, renderer.domElement)
-// transformControls.attach(cube)
-// transformControls.setMode('rotate')
-// scene.add(transformControls)
-
-// transformControls.addEventListener('dragging-changed', function (event) {
-//     orbitControls.enabled = !event.value
-//     //dragControls.enabled = !event.value
+// const dragControls = new DragControls([cube], camera, renderer.domElement)
+// dragControls.addEventListener('dragstart', function (event) {
+//     orbitControls.enabled = false
+//     event.object.material.opacity = 0.33
+// })
+// dragControls.addEventListener('dragend', function (event) {
+//     orbitControls.enabled = true
+//     event.object.material.opacity = 1
 // })
 
-// window.addEventListener('keydown', function (event) {
-//     switch (event.key) {
-//         case 'g':
-//             transformControls.setMode('translate')
-//             break
-//         case 'r':
-//             transformControls.setMode('rotate')
-//             break
-//         case 's':
-//             transformControls.setMode('scale')
-//             break
-//     }
-// })
+const transformControls = new TransformControls(camera, renderer.domElement)
+transformControls.attach(cube)
+transformControls.setMode('rotate')
+scene.add(transformControls)
+
+transformControls.addEventListener('dragging-changed', function (event) {
+    orbitControls.enabled = !event.value
+    //dragControls.enabled = !event.value
+})
+
+window.addEventListener('keydown', function (event) {
+    switch (event.key) {
+        case 'g':
+            transformControls.setMode('translate')
+            break
+        case 'r':
+            transformControls.setMode('rotate')
+            break
+        case 's':
+            transformControls.setMode('scale')
+            break
+    }
+})
 
 const backGroundTexture = new THREE.CubeTextureLoader().load([
     'img/materialTextures2/px_eso0932a.jpg',
