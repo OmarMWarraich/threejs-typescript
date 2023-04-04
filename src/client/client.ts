@@ -59,10 +59,10 @@ scene.add(torusKnot) */
 const texture = new THREE.TextureLoader().load('img/materialTextures2/worldColour.5400x2700.jpg')
 material.map = texture
 
-const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_bumpmap.jpg')
-// const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
-material.bumpMap = bumpTexture
-material.bumpScale = 0.05
+// const bumpTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_bumpmap.jpg')
+const normalTexture = new THREE.TextureLoader().load('img/materialTextures3/earth_normalmap_8192x4096.jpg')
+material.normalMap = normalTexture
+material.normalScale.set(2, 2)
 
 /* const envTexture = new THREE.CubeTextureLoader().load([
     'img/materialTextures2/px_eso0932a.jpg',
@@ -105,7 +105,11 @@ document.body.appendChild(stats.dom)
 
 const gui = new GUI()
 
-gui.add(material, 'bumpScale', 0, 1, 0.01)
+gui.add(material.normalScale, 'x', 0, 10, 0.01)
+gui.add(material.normalScale, 'y', 0, 10, 0.01)
+gui.add(light.position, 'x', -20, 20).name('Light Pos X')
+
+// gui.add(material, 'bumpScale', 0, 1, 0.01)
 
 /* const materialFolder = gui.addFolder('THREE.Material')
 materialFolder.add(material, 'transparent')
