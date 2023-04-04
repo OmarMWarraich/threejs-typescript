@@ -3,13 +3,23 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
-const scene1 = new THREE.Scene()
-const scene2 = new THREE.Scene()
+const scene = new THREE.Scene()
+scene.add(new THREE.AxesHelper(5))
 
-const axesHelper1 = new THREE.AxesHelper(5)
-scene1.add(axesHelper1)
-const axesHelper2 = new THREE.AxesHelper(5)
-scene2.add(axesHelper2)
+
+/* interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
+    [key: string]: any;
+  }
+
+const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial() */
+
+interface AmbientLightWithIndex extends THREE.AmbientLight {
+    [key: string]: any
+}
+
+
+const light: AmbientLightWithIndex = new THREE.AmbientLight()
+scene.add(light)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -17,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.set(0, -0.35, 0.2)
+camera.position.z = 7
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -25,54 +35,54 @@ document.body.appendChild(renderer.domElement)
 
 new OrbitControls(camera, renderer.domElement)
 
-const planeGeometry1 = new THREE.PlaneGeometry(2, 25)
-const planeGeometry2 = new THREE.PlaneGeometry(2, 25)
+// const planeGeometry = new THREE.PlaneGeometry(20, 10)//, 360, 180)
+// const plane = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial())
+// plane.rotateX(-Math.PI / 2)
+// //plane.position.y = -1.75
+// scene.add(plane)
 
-// const texture1 = new THREE.TextureLoader().load("img/grid.png")
-// const texture2 = new THREE.TextureLoader().load("img/grid.png")
+const torusGeometry = [
+    new THREE.TorusGeometry(),
+    new THREE.TorusGeometry(),
+    new THREE.TorusGeometry(),
+    new THREE.TorusGeometry(),
+    new THREE.TorusGeometry()
+]
 
-const mipmap = (size: number, color: string): HTMLCanvasElement => {
-    const imageCanvas = document.createElement('canvas') as HTMLCanvasElement
-    const context = imageCanvas.getContext('2d') as CanvasRenderingContext2D
-    imageCanvas.width = size
-    imageCanvas.height = size
-    context.fillStyle = '#888888'
-    context.fillRect(0, 0, size, size)
-    context.fillStyle = color
-    context.fillRect(0, 0, size / 2, size / 2)
-    context.fillRect(size / 2, size / 2, size / 2, size / 2)
-    return imageCanvas
-}
+const material = [
+    new THREE.MeshBasicMaterial(),
+    new THREE.MeshLambertMaterial(),
+    new THREE.MeshPhongMaterial(),
+    new THREE.MeshPhysicalMaterial({}),
+    new THREE.MeshToonMaterial()
+]
 
-const blankCanvas = document.createElement('canvas') as HTMLCanvasElement
-blankCanvas.width = 128
-blankCanvas.height = 128
+const torus = [
+    new THREE.Mesh(torusGeometry[0], material[0]),
+    new THREE.Mesh(torusGeometry[1], material[1]),
+    new THREE.Mesh(torusGeometry[2], material[2]),
+    new THREE.Mesh(torusGeometry[3], material[3]),
+    new THREE.Mesh(torusGeometry[4], material[4])
+]
 
-const texture1 = new THREE.CanvasTexture(blankCanvas)
-texture1.mipmaps[0] = mipmap(128, '#ff0000')
-texture1.mipmaps[1] = mipmap(64, '#00ff00')
-texture1.mipmaps[2] = mipmap(32, '#0000ff')
-texture1.mipmaps[3] = mipmap(16, '#880000')
-texture1.mipmaps[4] = mipmap(8, '#008800')
-texture1.mipmaps[5] = mipmap(4, '#000088')
-texture1.mipmaps[6] = mipmap(2, '#008888')
-texture1.mipmaps[7] = mipmap(1, '#880088')
-texture1.repeat.set(5, 50)
-texture1.wrapS = THREE.RepeatWrapping
-texture1.wrapT = THREE.RepeatWrapping
+const texture = new THREE.TextureLoader().load('img/grid.png')
+material[0].map = texture
+material[1].map = texture
+material[2].map = texture
+material[3].map = texture
+material[4].map = texture
 
-const texture2 = texture1.clone()
-texture2.minFilter = THREE.NearestFilter
-texture2.magFilter = THREE.NearestFilter
+torus[0].position.x = -8
+torus[1].position.x = -4
+torus[2].position.x = 0
+torus[3].position.x = 4
+torus[4].position.x = 8
 
-const material1 = new THREE.MeshBasicMaterial({ map: texture1 })
-const material2 = new THREE.MeshBasicMaterial({ map: texture2 })
-
-const plane1 = new THREE.Mesh(planeGeometry1, material1)
-const plane2 = new THREE.Mesh(planeGeometry2, material2)
-
-scene1.add(plane1)
-scene2.add(plane2)
+scene.add(torus[0])
+scene.add(torus[1])
+scene.add(torus[2])
+scene.add(torus[3])
+scene.add(torus[4])
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -82,50 +92,42 @@ function onWindowResize() {
     render()
 }
 
-const options = {
-    minFilters: {
-        NearestFilter: THREE.NearestFilter,
-        NearestMipMapLinearFilter: THREE.NearestMipMapLinearFilter,
-        NearestMipMapNearestFilter: THREE.NearestMipMapNearestFilter,
-        'LinearFilter ': THREE.LinearFilter,
-        'LinearMipMapLinearFilter (Default)': THREE.LinearMipMapLinearFilter,
-        LinearMipmapNearestFilter: THREE.LinearMipmapNearestFilter,
-    },
-    magFilters: {
-        NearestFilter: THREE.NearestFilter,
-        'LinearFilter (Default)': THREE.LinearFilter,
-    },
-}
-const gui = new GUI()
-const textureFolder = gui.addFolder('THREE.Texture')
-textureFolder
-    .add(texture2, 'minFilter', options.minFilters)
-    .onChange(() => updateMinFilter())
-textureFolder
-    .add(texture2, 'magFilter', options.magFilters)
-    .onChange(() => updateMagFilter())
-textureFolder
-    .add(texture2, 'anisotropy', 1, renderer.capabilities.getMaxAnisotropy())
-    .onChange(() => updateAnistropy())
-textureFolder.open()
-
-function updateAnistropy() {
-    material2.map = texture2.clone()
-}
-function updateMinFilter() {
-    texture2.minFilter = Number(texture2.minFilter) as THREE.TextureFilter
-    texture2.needsUpdate = true
-}
-function updateMagFilter() {
-    texture2.magFilter = Number(texture2.magFilter) as THREE.TextureFilter
-    texture2.needsUpdate = true
-}
-
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
+const data = {
+    color: light.color.getHex(),
+    mapsEnabled: true
+}
+
+const gui = new GUI()
+const lightFolder = gui.addFolder('THREE.Light')
+lightFolder.addColor(data, 'color').onChange(() => {
+    light.color.setHex(Number(data.color.toString().replace('#', '0x')))
+})
+lightFolder.add(light, 'intensity', 0, 1, 0.01)
+
+const ambientLightFolder = gui.addFolder('THREE.AmbientLight')
+ambientLightFolder.open()
+
+const meshesFolder = gui.addFolder('Meshes')
+meshesFolder.add(data, 'mapsEnabled').onChange(() => {
+    material.forEach((m) => {
+        if (data.mapsEnabled) {
+            m.map = texture
+        } else {
+            m.map = null
+        }
+        m.needsUpdate = true
+    })
+})
+
 function animate() {
     requestAnimationFrame(animate)
+
+    torus.forEach((t) => {
+        t.rotation.y += 0.01
+    })
 
     render()
 
@@ -133,28 +135,7 @@ function animate() {
 }
 
 function render() {
-    renderer.setScissorTest(true)
-
-    renderer.setScissor(0, 0, window.innerWidth / 2 - 2, window.innerHeight)
-    renderer.render(scene1, camera)
-
-    renderer.setScissor(
-        window.innerWidth / 2,
-        0,
-        window.innerWidth / 2 - 2,
-        window.innerHeight
-    )
-    renderer.render(scene2, camera)
-
-    renderer.setScissorTest(false)
+    renderer.render(scene, camera)
 }
+
 animate()
-
-
-
-
-/* interface MeshPhongMaterialWithIndex extends THREE.MeshPhongMaterial {
-    [key: string]: any;
-  }
-
-const material: MeshPhongMaterialWithIndex = new THREE.MeshPhongMaterial() */
