@@ -1,30 +1,28 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
-import { DragControls } from 'three/examples/jsm/controls/DragControls'
-import { Reflector } from 'three/examples/jsm/objects/Reflector'
 
 const scene = new THREE.Scene()
-scene.add(new THREE.AxesHelper(5))
+scene.background = new THREE.Color(0x87ceeb)
+
+const ambientLight = new THREE.AmbientLight(0xaaaaaa)
+scene.add(ambientLight)
 
 const light1 = new THREE.PointLight()
-light1.position.set(2.5, 2.5, 2.5)
+light1.position.set(10, 10, 10)
 light1.castShadow = true
+light1.shadow.bias = -0.0002
+light1.shadow.mapSize.height = 2048
+light1.shadow.mapSize.width = 2048
 scene.add(light1)
-
-const light2 = new THREE.PointLight()
-light2.position.set(-2.5, 2.5, 2.5)
-light2.castShadow = true
-scene.add(light2)
 
 const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.01,
-    1000
+    100
 )
-camera.position.set(0.8, 1.4, 1.0)
+camera.position.set(1.75, 1.75, 3.5)
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -33,88 +31,16 @@ document.body.appendChild(renderer.domElement)
 
 const orbitControls = new OrbitControls(camera, renderer.domElement)
 orbitControls.enableDamping = true
-orbitControls.target.set(0, 1, 0)
-
-const sceneMeshes: THREE.Mesh[] = []
-let boxHelper: THREE.BoxHelper;
-
-const dragControls = new DragControls(sceneMeshes, camera, renderer.domElement)
-dragControls.addEventListener('hoveron', function () {
-    boxHelper.visible = true
-    orbitControls.enabled = false
-})
-dragControls.addEventListener('hoveroff', function () {
-    boxHelper.visible = false
-    orbitControls.enabled = true
-})
-dragControls.addEventListener('drag', function (event) {
-    event.object.position.y = 0
-})
-dragControls.addEventListener('dragstart', function () {
-    boxHelper.visible = true
-    orbitControls.enabled = false
-})
-dragControls.addEventListener('dragend', function () {
-    boxHelper.visible = false
-    orbitControls.enabled = true
-})
 
 const planeGeometry = new THREE.PlaneGeometry(25, 25)
 const texture = new THREE.TextureLoader().load('img/grid.png')
-const plane: THREE.Mesh = new THREE.Mesh(
+const plane = new THREE.Mesh(
     planeGeometry,
     new THREE.MeshPhongMaterial({ map: texture })
 )
 plane.rotateX(-Math.PI / 2)
 plane.receiveShadow = true
 scene.add(plane)
-
-let mixer: THREE.AnimationMixer
-let modelReady = false
-const gltfLoader: GLTFLoader = new GLTFLoader()
-let modelGroup: THREE.Group = new THREE.Group()
-let modelDragBox: THREE.Mesh
-
-gltfLoader.load(
-    'models/model8/eve@punching.glb',
-    (gltf) => {
-        gltf.scene.traverse(function (child) {
-            if (child instanceof THREE.Group) {
-                modelGroup = child
-            }
-            if ((child as THREE.Mesh).isMesh) {
-                child.castShadow = true
-                child.frustumCulled = false
-                ;(child as THREE.Mesh).geometry.computeVertexNormals()
-            }
-        })
-
-        mixer = new THREE.AnimationMixer(gltf.scene)
-        mixer.clipAction((gltf as any).animations[0]).play()
-
-        modelDragBox = new THREE.Mesh(
-            new THREE.BoxGeometry(0.5, 1.3, 0.5),
-            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-        )
-        modelDragBox.geometry.translate(0, 0.65, 0)
-        scene.add(modelDragBox)
-        sceneMeshes.push(modelDragBox)
-
-        boxHelper = new THREE.BoxHelper(modelDragBox, 0xffff00)
-        boxHelper.visible = false
-        scene.add(boxHelper)
-
-        scene.add(gltf.scene)
-
-        modelReady = true
-    },
-    (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-    },
-    (error) => {
-        console.log(error)
-    }
-)
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -124,59 +50,59 @@ function onWindowResize() {
     render()
 }
 
-const mirrorBack1: Reflector = new Reflector(
-    new THREE.PlaneGeometry(2, 2),
-    {
-        color: new THREE.Color(0x7f7f7f),
-        textureWidth: window.innerWidth * window.devicePixelRatio,
-        textureHeight: window.innerHeight * window.devicePixelRatio
-    }
-)
+const cubeRenderTarget1 = new THREE.WebGLCubeRenderTarget(128, {
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+})
+const cubeRenderTarget2 = new THREE.WebGLCubeRenderTarget(128, {
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+})
+const cubeRenderTarget3 = new THREE.WebGLCubeRenderTarget(128, {
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+})
+const cubeCamera1 = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget1)
+const cubeCamera2 = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget2)
+const cubeCamera3 = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget3)
 
-mirrorBack1.position.y = 1
-mirrorBack1.position.z = -1
-scene.add(mirrorBack1)
+const pivot1 = new THREE.Object3D()
+scene.add(pivot1)
+const pivot2 = new THREE.Object3D()
+scene.add(pivot2)
+const pivot3 = new THREE.Object3D()
+scene.add(pivot3)
 
-const mirrorBack2: Reflector = new Reflector(
-    new THREE.PlaneGeometry(2, 2),
-    {
-        color: new THREE.Color(0x7f7f7f),
-        textureWidth: window.innerWidth * window.devicePixelRatio,
-        textureHeight: window.innerHeight * window.devicePixelRatio
-    }
-)
+const material1 = new THREE.MeshPhongMaterial({
+    envMap: cubeRenderTarget1.texture,
+})
+const material2 = new THREE.MeshPhongMaterial({
+    envMap: cubeRenderTarget2.texture,
+})
+const material3 = new THREE.MeshPhongMaterial({
+    envMap: cubeRenderTarget3.texture,
+})
 
-mirrorBack2.position.y = 1
-mirrorBack2.position.z = -2
-scene.add(mirrorBack2)
+const ball1 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), material1)
+ball1.position.set(1, 1.1, 0)
+ball1.castShadow = true
+ball1.receiveShadow = true
+ball1.add(cubeCamera1)
+pivot1.add(ball1)
 
-const mirrorFront1: Reflector = new Reflector(
-    new THREE.PlaneGeometry(2, 2),
-    {
-        color: new THREE.Color(0x7f7f7f),
-        //clipBias: 0.003,
-        textureWidth: window.innerWidth * window.devicePixelRatio,
-        textureHeight: window.innerHeight * window.devicePixelRatio
-    }
-)
-mirrorFront1.position.y = 1
-mirrorFront1.position.z = 1
-mirrorFront1.rotateY(Math.PI)
-scene.add(mirrorFront1)
+const ball2 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), material2)
+ball2.position.set(3.1, 1.1, 0)
+ball2.castShadow = true
+ball2.receiveShadow = true
+ball2.add(cubeCamera2)
+pivot2.add(ball2)
 
-const mirrorFront2: Reflector = new Reflector(
-    new THREE.PlaneGeometry(2, 2),
-    {
-        color: new THREE.Color(0x7f7f7f),
-        //clipBias: 0.003,
-        textureWidth: window.innerWidth * window.devicePixelRatio,
-        textureHeight: window.innerHeight * window.devicePixelRatio
-    }
-)
-mirrorFront2.position.y = 1
-mirrorFront2.position.z = 2
-mirrorFront2.rotateY(Math.PI)
-scene.add(mirrorFront2)
+const ball3 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), material3)
+ball3.position.set(5.2, 1.1, 0)
+ball3.castShadow = true
+ball3.receiveShadow = true
+ball3.add(cubeCamera3)
+pivot3.add(ball3)
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -186,13 +112,15 @@ const clock = new THREE.Clock()
 function animate() {
     requestAnimationFrame(animate)
 
-    orbitControls.update()
+    const delta = clock.getDelta()
+    ball1.rotateY(-0.2 * delta)
+    pivot1.rotateY(0.2 * delta)
+    ball2.rotateY(-0.3 * delta)
+    pivot2.rotateY(0.3 * delta)
+    ball3.rotateY(-0.4 * delta)
+    pivot3.rotateY(0.4 * delta)
 
-    if (modelReady) {
-        mixer.update(clock.getDelta())
-        modelGroup.position.copy(modelDragBox.position)
-        boxHelper.update()
-    }
+    orbitControls.update()
 
     render()
 
@@ -200,7 +128,12 @@ function animate() {
 }
 
 function render() {
+    cubeCamera1.update(renderer, scene)
+    cubeCamera2.update(renderer, scene)
+    cubeCamera3.update(renderer, scene)
+
     renderer.render(scene, camera)
 }
 
 animate()
+
