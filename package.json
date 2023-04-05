@@ -14,6 +14,7 @@
     "@types/dat.gui": "^0.7.9",
     "@types/three": "^0.150.1",
     "@types/tweenjs": "^1.0.4",
+    "cannon-es": "^0.20.0",
     "dat.gui": "^0.7.9",
     "three": "^0.151.2",
     "ts-loader": "^9.4.2",
