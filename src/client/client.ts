@@ -36,7 +36,7 @@ orbitControls.enableDamping = true
 orbitControls.target.set(0, 1, 0)
 
 const sceneMeshes: THREE.Mesh[] = []
-let boxHelper: THREE.BoxHelper
+let boxHelper: THREE.BoxHelper;
 
 const dragControls = new DragControls(sceneMeshes, camera, renderer.domElement)
 dragControls.addEventListener('hoveron', function () {
@@ -72,7 +72,7 @@ scene.add(plane)
 let mixer: THREE.AnimationMixer
 let modelReady = false
 const gltfLoader: GLTFLoader = new GLTFLoader()
-let modelGroup: THREE.Group
+let modelGroup: THREE.Group = new THREE.Group()
 let modelDragBox: THREE.Mesh
 
 gltfLoader.load(
