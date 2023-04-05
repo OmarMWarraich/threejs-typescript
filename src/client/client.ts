@@ -101,7 +101,7 @@ cylinderMesh.castShadow = true
 scene.add(cylinderMesh)
 const cylinderShape = new CANNON.Cylinder(1, 1, 2, 8)
 const cylinderBody = new CANNON.Body({ mass: 1 })
-cylinderBody.addShape(cylinderShape)
+cylinderBody.addShape(cylinderShape, new CANNON.Vec3())
 cylinderBody.position.x = cylinderMesh.position.x
 cylinderBody.position.y = cylinderMesh.position.y
 cylinderBody.position.z = cylinderMesh.position.z
@@ -149,18 +149,18 @@ objLoader.load(
         ;(monkeyMesh as THREE.Mesh).material = normalMaterial
         monkeyMesh.position.x = -2
         monkeyMesh.position.y = 20
-        const monkeyShape = CannonUtils.CreateTrimesh(
-            (monkeyMesh as THREE.Mesh).geometry
-        )
+        // const monkeyShape = CannonUtils.CreateTrimesh(
+        //     (monkeyMesh as THREE.Mesh).geometry
+        // )
         // const monkeyShape = CannonUtils.CreateConvexPolyhedron(
         //     (monkeyMesh as THREE.Mesh).geometry
         // )
         monkeyBody = new CANNON.Body({ mass: 1 })
-        monkeyBody.addShape(monkeyShape)
+        // monkeyBody.addShape(monkeyShape)
         // monkeyBody.addShape(cubeShape)
         // monkeyBody.addShape(sphereShape)
         // monkeyBody.addShape(cylinderShape)
-        // monkeyBody.addShape(icosahedronShape)
+        monkeyBody.addShape(icosahedronShape)
         // monkeyBody.addShape(new CANNON.Plane())
         // monkeyBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), Math.PI / 2)
         monkeyBody.position.x = monkeyMesh.position.x
@@ -203,21 +203,15 @@ document.body.appendChild(stats.dom)
 const gui = new GUI()
 const physicsFolder = gui.addFolder('Physics')
 
-const worldGravity = {
-    x: world.gravity.x,
-    y: world.gravity.y,
-    z: world.gravity.z,
-}
-
-physicsFolder.add(worldGravity, 'x', -10.0, 10.0, 0.1)
-physicsFolder.add(worldGravity, 'y', -10.0, 10.0, 0.1)
-physicsFolder.add(worldGravity, 'z', -10.0, 10.0, 0.1)
+physicsFolder.add(world.gravity, 'x', -10.0, 10.0, 0.1)
+physicsFolder.add(world.gravity, 'y', -10.0, 10.0, 0.1)
+physicsFolder.add(world.gravity, 'z', -10.0, 10.0, 0.1)
 physicsFolder.open()
 
 const clock = new THREE.Clock()
 let delta
 
-// const cannonDebugRenderer = new CannonDebugRenderer(scene, world)
+const cannonDebugRenderer = new CannonDebugRenderer(scene, world)
 
 function animate() {
     requestAnimationFrame(animate)
@@ -227,7 +221,7 @@ function animate() {
     delta = Math.min(clock.getDelta(), 0.1)
     world.step(delta)
 
-    // cannonDebugRenderer.update()
+    cannonDebugRenderer.update()
 
     // Copy coordinates from Cannon to Three.js
     cubeMesh.position.set(
@@ -309,6 +303,7 @@ function render() {
 }
 
 animate()
+
 
 
 
