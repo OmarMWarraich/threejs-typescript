@@ -12,10 +12,20 @@
                 overflow: hidden;
                 margin: 0px;
             }
+
+            #progressBar {
+                width: 500px;
+                height: 24px;
+                position: absolute;
+                left: 50%;
+                top: 10px;
+                margin-left: -250px;
+            }
         </style>
     </head>
 
     <body>
+        <progress value="0" max="100" id="progressBar"></progress>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>
