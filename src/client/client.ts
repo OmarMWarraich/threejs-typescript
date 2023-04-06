@@ -3,20 +3,31 @@
 *
 *  Download Progress Indicator
 *
+*  While downloading multiple assets, onProgress event is called multiple times.
+*  The following example uses both the RGBELoader and GLTFLoader at the same time.
+*
 */
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 
 const scene = new THREE.Scene()
 
-const light = new THREE.DirectionalLight(0xffffff, 1)
-light.position.set(1, 1, 1)
-scene.add(light)
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.25))
+new RGBELoader().load(
+    './img/img10/kloppenheim_06_puresky_1k.hdr',
+    function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping
+        scene.background = texture
+        scene.environment = texture
+    },
+    (xhr) => {
+        const percentComplete = (xhr.loaded / xhr.total) * 100
+        progressBar.value = percentComplete === Infinity ? 100 : percentComplete
+    }
+)
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -77,6 +88,7 @@ function render() {
 }
 
 animate()
+
 
 
 
